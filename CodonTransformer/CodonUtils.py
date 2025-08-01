@@ -538,32 +538,32 @@ class IterableData(torch.utils.data.IterableDataset):
         worker_nb = world_size * local_num_workers
         return itertools.islice(self.iterator, worker_rk, None, worker_nb)
 
+# iterator fix and steps fix
+
 class IterableJSONData(IterableData):
-    """
-    Iterate over the lines of a JSON file and uncompress if needed.
-
-    Args:
-        data_path (str): The path to the JSON data file.
-        train (bool): Flag indicating if the dataset is for training.
-        **kwargs: Additional keyword arguments for the base class.
-    """
-
     def __init__(self, data_path: str, train: bool = True, **kwargs):
         super().__init__(**kwargs)
         self.data_path = data_path
         self.train = train
+        # Precompute number of records so Lightning can infer total_steps
+        with open(self.data_path, "r") as f:
+            self._length = sum(1 for _ in f)
+
+    def __len__(self) -> int:
+        """
+        Return the number of records in the JSONL file.
+        Lightning will compute total_steps = (len(dataset)//batch_size)*max_epochs,
+        ensuring OneCycleLR gets a positive integer.
+        """
+        return self._length
 
     @property
     def iterator(self) -> Iterator[Dict]:
-        """
-        Read the JSONL file one record at a time.
-        Yields each line parsed as a JSON object.
-        """
         import json
-
         with open(self.data_path, "r") as f:
             for line in f:
                 yield json.loads(line)
+
 
 
 

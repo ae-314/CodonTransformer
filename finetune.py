@@ -134,7 +134,7 @@ def main(args):
     harnessed_model = plTrainHarness(model, args.learning_rate, args.warmup_fraction)
 
     # Load the training data
-    train_data = IterableJSONData(args.dataset_dir, dist_env="slurm")
+    train_data = IterableJSONData(args.dataset_dir)
     data_loader = DataLoader(
         dataset=train_data,
         collate_fn=MaskedTokenizerCollator(tokenizer),

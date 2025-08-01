@@ -538,7 +538,6 @@ class IterableData(torch.utils.data.IterableDataset):
         worker_nb = world_size * local_num_workers
         return itertools.islice(self.iterator, worker_rk, None, worker_nb)
 
-
 class IterableJSONData(IterableData):
     """
     Iterate over the lines of a JSON file and uncompress if needed.
@@ -553,6 +552,19 @@ class IterableJSONData(IterableData):
         super().__init__(**kwargs)
         self.data_path = data_path
         self.train = train
+
+    @property
+    def iterator(self) -> Iterator[Dict]:
+        """
+        Read the JSONL file one record at a time.
+        Yields each line parsed as a JSON object.
+        """
+        import json
+
+        with open(self.data_path, "r") as f:
+            for line in f:
+                yield json.loads(line)
+
 
 
 class ConfigManager(ABC):

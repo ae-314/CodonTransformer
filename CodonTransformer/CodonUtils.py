@@ -528,8 +528,8 @@ class IterableData(torch.utils.data.IterableDataset):
         # In multi-processing context, use 'os.environ' to
         # find global worker rank. Then use 'islice' to allocate
         # the items of the stream to the workers.
-        world_size = int(os.environ.get(self.world_size_handle))
-        global_rank = int(os.environ.get(self.rank_handle))
+        world_size = int(os.environ.get(self.world_size_handle, "1"))
+        global_rank = int(os.environ.get(self.rank_handle, "0"))
         local_rank = worker_info.id
         local_num_workers = worker_info.num_workers
 
